@@ -2,18 +2,31 @@
 #include <memory.h>
 #include <limits.h>
 #include <algorithm>
+#include <vector>
+#include <iostream>
+#include "timewindowtable.h"
 #include "chromosome.h"
-#include "taskprocessor.h"
-#include "graph.h"
-#include "task.h"
-#include "car.h"
 using namespace std;
 
+Chromosome::Chromosome() {
+    _longest = _shortest = _carNum = 0;
+    _fitness = 0.0;
+}
+
+Chromosome::Chromosome(const TaskProcessor &tPro, const Graph &G)
+    : genes(tPro.run()) {
+    //cout << "enter" << endl;
+    _fitness = _longest = _shortest = 0;
+    _carNum = genes.size();
+    _table.setTable(_carNum, G.getEdgeNum());
+    //cout << _carNum << "---" << G.getEdgeNum() << endl;
+}
+
+Chromosome::~Chromosome() {
+    genes.clear();
+}
+
 vector<Chromosome> crossover(Chromosome arg1, Chromosome arg2, int indexOf) {
-    //arg1.printGenes();
-    //cout << "------------------------" << endl;
-    //arg2.printGenes();
-    //cout << "++++++++++++++++++++++++" << indexOf << endl;
     for(int i = 0; i < arg1._carNum; i++) {
         int pos = indexOf;
         while(pos < arg1.genes[i].size() && arg1.genes[i].size() == arg2.genes[i].size()) {
@@ -55,28 +68,50 @@ Chromosome mutate(Chromosome arg) {
 }
 
 void Chromosome::calculate(const Graph& G, const TaskSet& tSet, const CarSet& cSet) {
-    //cout << "enter" << endl;
-    //cout << genes.size() << endl;
     _carNum = 0;
-    int maxFit = INT_MIN, minFit = INT_MAX;
-    int fitness[genes.size()];
+    float minFit = numeric_limits<float>::max();
+    float maxFit = numeric_limits<float>::min();
+    float fitness[genes.size()];
+    Graph graph(G);
+    _table.clear();
+    //_table.setTable(_carNum, G.getEdgeNum());
     for(int i = 0; i < genes.size(); i++)
-        fitness[i] = 0;
-    //printGenes();
-    //G.printDist();
-    //tSet.printTasks();
-    for(vector<int> gene : genes) {
-        //cout << "calculate fitness" << endl;
-        // 小车起始位置到第一个任务的起点
-        fitness[_carNum] += G.getShortestDist(cSet[_carNum].verId, tSet[gene[0]].s);
-        //cout << cSet[_carNum].verId << "  " << gene[0] << "  " << tSet[gene[0]].s << endl;
-        //cout << _carNum << "  " << fitness[_carNum] << endl;
-        for(int i = 0; i < gene.size()-1; i++) {
-            //cout << "enter" << endl;
-            //cout << G.getShortestDist(tSet[gene[i]].s, tSet[gene[i]].e) << endl;
-            fitness[_carNum] += G.getShortestDist(tSet[gene[i]].s, tSet[gene[i]].e);
+        fitness[i] = 0.0;
+//    for(auto gene : genes) {
+//        for(auto item : gene)
+//            cout << item << "--";
+//        cout << endl;
+//    }
+    for(int carIndex = 0; carIndex < genes.size(); carIndex++) {
+        int start = cSet[carIndex].startId;
+        int end = tSet[genes[carIndex][0]].s;
+        //cout << "out: " << start << "  " << end << endl;
+        vector<int> pathInfo(G.getPathInfo(start, end));
+        _table.addPathInfo(carIndex, pathInfo, graph, 1);
+        //cout << fitness[carIndex] << "  ";
+    }
+    //cout << "finish tw init" << endl;
+    //cout << _table;
+    int taskIndex = 0;
+    bool flag = true;
+    while (flag) {
+        flag = false;
+        for(int carIndex = 0; carIndex < genes.size(); carIndex++) {
+            if(taskIndex < genes[carIndex].size()) {
+                vector<int> pathInfo1(
+                G.getPathInfo(tSet[genes[carIndex][taskIndex]].s,
+                tSet[genes[carIndex][taskIndex]].e));
+                fitness[carIndex] = _table.addPathInfo(carIndex, pathInfo1, graph, 1);
+            }
+            if(taskIndex < genes[carIndex].size()-1) {
+                vector<int> pathInfo2(
+                        G.getPathInfo(tSet[genes[carIndex][taskIndex]].e,
+                        tSet[genes[carIndex][taskIndex+1]].s));
+                _table.addPathInfo(carIndex, pathInfo2, graph, 1);
+                flag = true;
+            }
         }
-        _carNum++;
+        taskIndex++;
     }
     //cout << "  " << genes.size() << endl;
     for(int i = 0; i < genes.size(); i++) {
@@ -91,11 +126,9 @@ void Chromosome::calculate(const Graph& G, const TaskSet& tSet, const CarSet& cS
             minFit = fitness[i];
         }
     }
-    //cout << _fitness << endl;
-    //cout << endl;
 }
 
-int Chromosome::getFitness() const {
+float Chromosome::getFitness() const {
     return _fitness;
 }
 
@@ -113,4 +146,8 @@ void Chromosome::printGenes() const {
             cout << ver << "  ";
         cout << endl;
     }
+}
+
+void Chromosome::printTable() {
+    cout << _table << endl;
 }

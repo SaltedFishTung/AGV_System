@@ -18,12 +18,12 @@ Graph::Graph(const string &versFilePath, const string &matrixFilePath) {
     _graph = new int*[getVerNum()];
     _distance = new int*[getVerNum()];
     _path = new int*[getVerNum()];
-    _resEdge = new int*[getVerNum()];
+    _edgeId = new int*[getVerNum()];
     for(int v = 0; v < getVerNum(); v++) {
         _graph[v] = new int[getVerNum()];
         _distance[v] = new int[getVerNum()];
         _path[v] = new int[getVerNum()];
-        _resEdge[v] = new int[getVerNum()];
+        _edgeId[v] = new int[getVerNum()];
     }
     // 初始化邻接表
     for(int v = 0; v < getVerNum(); v++) {
@@ -34,12 +34,21 @@ Graph::Graph(const string &versFilePath, const string &matrixFilePath) {
         while(getline(iss, edge, ' ')) {
             _graph[v][u] = stoi(edge);
             _distance[v][u] = INT_MAX;
+            _edgeId[v][u] = -1;
             if(v == u)
                 _distance[v][u] = 0;
             u++;
             if(u >= getVerNum())
                 break;
         }
+    }
+    _edgeNum = 0;
+    for(int i = 0; i < getVerNum(); i++) {
+        for(int j = 0; j < i; j++)
+            if(_graph[i][j] != -1) {
+                _edgeId[i][j] = ++_edgeNum;
+                _edgeId[j][i] = _edgeId[i][j];
+            }
     }
     inVers.close();
     inMatrix.close();
@@ -50,15 +59,15 @@ Graph::Graph(const vector<Vertex>& vers) {
     _graph = new int*[getVerNum()];
     _distance = new int*[getVerNum()];
     _path = new int*[getVerNum()];
-    _resEdge = new int*[getVerNum()];
-    for(int v = 1; v < getVerNum(); v++) {
+    _edgeId = new int*[getVerNum()];
+    for(int v = 0; v < getVerNum(); v++) {
         _graph[v] = new int[getVerNum()];
         _distance[v] = new int[getVerNum()];
         _path[v] = new int[getVerNum()];
-        _resEdge[v] = new int[getVerNum()];
+        _edgeId[v] = new int[getVerNum()];
     }
-    for(int v = 1; v < getVerNum(); v++) {
-        for(int u = 1; u < getVerNum(); u++) {
+    for(int v = 0; v < getVerNum(); v++) {
+        for(int u = 0; u < getVerNum(); u++) {
             // 初始化邻接表
             if(getVer(v).x == getVer(u).x)
                 _graph[v][u] = abs(getVer(v).y-getVer(u).y);
@@ -75,9 +84,68 @@ Graph::Graph(const vector<Vertex>& vers) {
                 _distance[v][u] = INT_MAX;
                 _path[v][u] = -1;   // -1代表仍未寻找
             }
-            _resEdge[v][u] = -1;
         }
     }
+    _edgeNum = 0;
+    for(int i = 0; i < getVerNum(); i++) {
+        for(int j = 0; j < i; j++)
+            if(_graph[i][j] != -1) {
+                _edgeId[i][j] = ++_edgeNum;
+                _edgeId[j][i] = _edgeId[i][j];
+            }
+    }
+}
+
+Graph::Graph(const Graph &G) {
+    for(auto ver : G._vertices) {
+        _vertices.push_back(ver);
+    }
+    _graph = new int*[getVerNum()];
+    _distance = new int*[getVerNum()];
+    _path = new int*[getVerNum()];
+    _edgeId = new int*[getVerNum()];
+    for(int v = 0; v < getVerNum(); v++) {
+        _graph[v] = new int[getVerNum()];
+        _distance[v] = new int[getVerNum()];
+        _path[v] = new int[getVerNum()];
+        _edgeId[v] = new int[getVerNum()];
+    }
+    for(int i = 0; i < getVerNum(); i++) {
+        for(int j = 0; j < getVerNum(); j++) {
+            _graph[i][j] = G._graph[i][j];
+            _distance[i][j] = G._distance[i][j];
+            _edgeId[i][j] = G._edgeId[i][j];
+        }
+    }
+    _edgeNum = G._edgeNum;
+}
+
+Graph::Graph(const Graph &G, int s, int e) {
+    for(auto ver : G._vertices) {
+        _vertices.push_back(ver);
+    }
+    _graph = new int*[getVerNum()];
+    _distance = new int*[getVerNum()];
+    _path = new int*[getVerNum()];
+    _edgeId = new int*[getVerNum()];
+    for(int v = 0; v < getVerNum(); v++) {
+        _graph[v] = new int[getVerNum()];
+        _distance[v] = new int[getVerNum()];
+        _path[v] = new int[getVerNum()];
+        _edgeId[v] = new int[getVerNum()];
+    }
+    for(int i = 0; i < getVerNum(); i++) {
+        for(int j = 0; j < getVerNum(); j++) {
+            _graph[i][j] = G._graph[i][j];
+            _edgeId[i][j] = G._edgeId[i][j];
+            _distance[i][j] = (i == j) ? 0 : INT_MAX;
+        }
+    }
+    _resumeEdgeSet.push_back(_graph[s][e]);
+    _resumeStartSet.push_back(s);
+    _resumeEndSet.push_back(e);
+    _graph[s][e] = _graph[e][s] = -1;
+    _edgeNum = G._edgeNum;
 }
 
 Graph::~Graph() {
@@ -85,18 +153,18 @@ Graph::~Graph() {
         delete[] _graph[v];
         delete[] _distance[v];
         delete[] _path[v];
-        delete[] _resEdge[v];
+        delete[] _edgeId[v];
     }
     delete[] _graph;
     delete[] _distance;
     delete[] _path;
-    delete[] _resEdge;
+    delete[] _edgeId;
 }
 
 void Graph::run() {
     for(int v = 0; v < getVerNum(); v++)
         Dijstra(v);
-    //Dijstra(0);
+    setPathInfo();
 }
 
 void Graph::init() {
@@ -118,7 +186,6 @@ void Graph::init() {
                 _distance[v][u] = INT_MAX;
                 _path[v][u] = -1;   // -1代表仍未寻找
             }
-            _resEdge[v][u] = -1;
         }
     }
 }
@@ -129,52 +196,39 @@ int Graph::getShortestDist(int s, int e) const {
 
 vector<int> Graph::getShortestPath(int s, int e) const {
     vector<int> path;
-    path.push_back(s);
-    while(_path[s][e] != 0) {
+    //cout << "in: " << s << "  " << e << "  size: ";
+    while(s != e) {
         path.push_back(s);
         s = _path[s][e];
     }
+    path.push_back(e);
+    //cout << path.size() << endl;
     return path;
 }
 
-void Graph::removeEdge(int s, int e) {
-    // 无向图，所以正反都要设置
-    _resEdge[s][e] = _graph[s][e];
-    _resEdge[e][s] = _graph[e][s];
-    _graph[s][e] = INT_MAX;
-    _graph[e][s] = INT_MAX;
+int Graph::getEdgeNum() const {
+    return _edgeNum;
 }
 
-void Graph::removeNode(int node) {
-    for(int i = 1; i < getVerNum(); i++)
-        if(_graph[i][node] != INT_MAX) {
-            _resEdge[i][node] = _resEdge[node][i] = _graph[i][node];
-            _graph[i][node] = _graph[node][i] = INT_MAX;
-        }
+int Graph::getBeforeS(int s, int edgeToS) const {
+    for(int i = 0; i < getVerNum(); i++)
+        if(_edgeId[i][s] == edgeToS)
+            return i;
 }
 
-void Graph::restore() {
-    for(int v = 1; v < getVerNum(); v++) {
-        for(int u = 1; u < getVerNum(); u++) {
-            if(_resEdge[v][u] != -1)
-                _graph[v][u] = _resEdge[v][u];
-        }
-    }
-    for(int v = 1; v < getVerNum(); v++)
-        memset(_resEdge[v], 0, sizeof(_resEdge[v])*getVerNum());
+bool Graph::isAlone(int s) const {
+    for(int i = 0; i < getVerNum(); i++)
+        if(_graph[s][i] != -1 && s != i)
+            return false;
+    return true;
 }
 
-// 有待修改
 void Graph::Dijstra(int s) {
     // 优先队列，最小堆，每次弹出当前最短距离的点
     priority_queue<Dist, vector<Dist>, greater<Dist>> Q;
     int add[getVerNum()];
     for(int i = 0; i < getVerNum(); i++)
         add[i] = 0;
-    //cout << "----";
-    //memset(add, 0, getVerNum()*sizeof(add));
-    //cout << s << endl;
-
     // 初始化
     Q.push(Dist(s, 0));
     while(!Q.empty()) {
@@ -182,9 +236,6 @@ void Graph::Dijstra(int s) {
         Q.pop();
         add[dist.ver] = 1;
         for(int v = 0; v < getVerNum(); v++) {
-            //cout << s << "  " << dist.ver << "  " << v << "  " << _distance[s][v] << endl;
-            //cout << _graph[dist.ver][v] << "  " << add[v] << "  " << _distance[s][v] <<
-            //                         "  " << dist.distance+_distance[dist.ver][v] <<endl;
             if(_graph[dist.ver][v] != -1 && add[v]==0 &&
                _distance[s][v] > dist.distance+_graph[dist.ver][v]) {
                 _distance[s][v] = dist.distance+_graph[dist.ver][v];
@@ -193,6 +244,31 @@ void Graph::Dijstra(int s) {
             }
         }
     }
+}
+
+void Graph::removeEdge(int s, int e) {
+    _graph[s][e] = _graph[e][s] = -1;
+    for(int i = 0; i < getVerNum(); i++) {
+        for(int j = 0; j < getVerNum(); j++) {
+            if(i == j)
+                _distance[i][j] = 0;
+            else
+                _distance[i][j] = INT_MAX;
+        }
+    }
+}
+
+void Graph::resume() {
+    if(_resumeEdgeSet.empty())
+        return;
+    for(int i = 0; i < _resumeEdgeSet.size(); i++) {
+        _graph[_resumeStartSet[i]][_resumeEndSet[i]]
+            =_graph[_resumeEndSet[i]][_resumeStartSet[i]]
+            =_resumeEdgeSet[i];
+    }
+    _resumeEdgeSet.clear();
+    _resumeStartSet.clear();
+    _resumeEndSet.clear();
 }
 
 void Graph::printGraph() const {
@@ -213,10 +289,30 @@ void Graph::printDist() const {
 
 void Graph::printPath(int s, int e) const {
     int c = e;
-    cout << e+1 << " ";
+    cout << e << " ";
     do {
-        cout << _path[c][s]+1 << "  ";
+        cout << _path[c][s] << "  ";
         c = _path[c][s];
     }while(_path[c][s] != s);
-    cout << s+1 << endl;
+    cout << s << endl;
+}
+
+void Graph::printEdgeInfo() const {
+    for(int i = 0; i < getVerNum(); i++) {
+        for(int j = 0; j < getVerNum(); j++) {
+            if(_edgeId[i][j] != -1)
+                cout << "edge " << _edgeId[i][j] << ": "
+                     << i << " " << j << endl;
+        }
+    }
+}
+
+void Graph::setPathInfo() {
+    for(int i = 0; i < getVerNum(); i++) {
+        vector<vector<int>> iTojPath;
+        for(int j = 0; j < getVerNum(); j++) {
+            iTojPath.push_back(getShortestPath(i, j));
+        }
+        _pathInfo.push_back(iTojPath);
+    }
 }

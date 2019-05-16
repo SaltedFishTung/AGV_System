@@ -8,15 +8,17 @@ using namespace std;
 TaskSet::TaskSet(const string& tasksFilePath) {
     ifstream inTasks(tasksFilePath);
     string line;
+    this->push_back(Task(-1, -1, -1));
     while(getline(inTasks, line)) {
         istringstream iss(line);
         string temp;
         int arr[3];
         int i = 0;
+        // 填充，无效数据
         while(getline(iss, temp, ' ')) {
-            arr[i++] = stoi(temp)-1;
+            arr[i++] = stoi(temp);
         }
-        this->push_back(Task(arr[0], arr[1], arr[2]));
+        this->push_back(Task(arr[0], arr[1]-1, arr[2]-1));
     }
     inTasks.close();
 }

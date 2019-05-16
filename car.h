@@ -6,12 +6,12 @@ using namespace std;
 
 class Car {
 public:
-    int verId;
+    int startId;
     int carId;
     int v;
     int l;
-    Car(int verId, int carId, int v=2, int l=2) :
-        verId(verId), carId(carId), v(v), l(l) {}
+    Car(int startId, int carId, int v=2, int l=2) :
+        startId(startId), carId(carId), v(v), l(l) {}
 };
 
 

@@ -14,10 +14,12 @@ int main(int argc, char *argv[]) {
     */
     Graph G("C:\\Users\\10761\\Documents\\AGV_System\\map\\vers.txt",
             "C:\\Users\\10761\\Documents\\AGV_System\\map\\matrix.txt");
-    G.run();
+    //cout << "run finish" << endl;
+    //G.printEdgeInfo();
     TaskSet tSet("C:\\Users\\10761\\Documents\\AGV_System\\map\\tasks.txt");
     CarSet cSet;
     GeneticAlgorithm GA(cSet, tSet, G);
+    //cout << "finish init";
     GA.run();
     //cout << "end" << endl;
     return 0;

@@ -2,6 +2,7 @@
 #define GRAPH_H
 
 #include <vector>
+#include <vector>
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -25,6 +26,7 @@ public:
         y = sv[1];
         id = sv[2];
     }
+    Vertex(const Vertex& ver) : x(ver.x), y(ver.y), id(ver.id) { }
 };
 
 // (点，距离)的集合
@@ -51,28 +53,41 @@ class Graph {
 public:
     Graph(const string& versFilePath, const string& matrixFilePath);
     Graph(const vector<Vertex>& vers);
+    Graph(const Graph& G);
+    Graph(const Graph &G, int s, int e);
     ~Graph();
     void init();
     void run();                     // 遍历一遍，生成所有最短路径，完成初始化
-
-    Vertex getVer(int id) { return _vertices[id]; }
-    int getEdge(int s, int e) { return _graph[s][e]; }
-    void removeEdge(int s, int e);
-    void removeNode(int node);
-    void restore();
+    Vertex getVer(int id) const { return _vertices[id]; }
+    int getEdge(int s, int e) const { return _graph[s][e]; }
+    int getEdgeId(int s, int e) const { return _edgeId[s][e]; }
     int getVerNum() const { return _vertices.size(); }
     vector<int> getShortestPath(int s, int e) const;
+    const vector<int>& getPathInfo(int s, int e) const { return _pathInfo[s][e]; }
     int getShortestDist(int s, int e) const;
+    int getEdgeNum() const;
+    int getBeforeS(int s, int edgeToS) const;
+    bool isAlone(int s) const;
     void Dijstra(int s);
+    void removeEdge(int s, int e);
+    void resume();
     void printGraph() const;
     void printDist() const;
     void printPath(int s, int e) const;
+    void printEdgeInfo() const;
 private:
+    vector<vector<vector<int>>> _pathInfo;
     vector<Vertex> _vertices;
     int** _graph;                   // 邻接矩阵
     int** _distance;                // 存储各点间的最短距离
     int** _path;                    // 存储最短距离的路径
-    int** _resEdge;                 // 存储要恢复数据的边
+    int** _edgeId;
+    int _edgeNum;
+    vector<int> _resumeStartSet;
+    vector<int> _resumeEndSet;
+    vector<int> _resumeEdgeSet;
+
+    void setPathInfo();
 };
 
 #endif // GRAPH_H

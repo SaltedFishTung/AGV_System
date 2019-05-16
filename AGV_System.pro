@@ -34,7 +34,11 @@ SOURCES += main.cpp\
     task.cpp \
     geneticalgorithm.cpp \
     taskprocessor.cpp \
-    chromosome.cpp
+    chromosome.cpp \
+    timewindow.cpp \
+    timewindowtable.cpp \
+    timewindowsbycar.cpp \
+    timewindowsbyedge.cpp
 
 HEADERS  += \
     node.h \
@@ -47,7 +51,11 @@ HEADERS  += \
     task.h \
     geneticalgorithm.h \
     taskprocessor.h \
-    chromosome.h
+    chromosome.h \
+    timewindow.h \
+    timewindowtable.h \
+    timewindowsbycar.h \
+    timewindowsbyedge.h
 
 FORMS    += \
     mainwindow.ui \

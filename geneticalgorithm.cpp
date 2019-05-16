@@ -14,18 +14,27 @@ using namespace std;
 void GeneticAlgorithm::run() {
     initGA();
     cout << "finish init" << endl;
+    int stableTimes = 0;
+    float lastFitness = 0.0;
     for(int count = 0; count < 200; count++) {
         // 选择 交叉 变异 一条龙服务
-        //cout << "1---" << count << endl;
+        cout << "1---" << count << endl;
         selectChromosome();
-        //cout << "2---" << count << endl;
+        cout << "2---" << count << endl;
         crossoverChromosome();
-        //cout << "3---" << count << endl;
+        cout << "3---" << count << endl;
         mutateChromosome();
-        //cout << "4---" << count << endl << endl;
+        cout << "4---" << count << endl << endl;
         _bestChromosome.printGenes();
-        cout << _bestChromosome.getFitness() << endl << endl;
+        cout << _bestChromosome.getFitness() << endl;
         cout << "-----------------------------" << endl;
+        if(_bestChromosome.getFitness() == lastFitness)
+            ++stableTimes;
+        else
+            stableTimes = 0;
+        lastFitness = _bestChromosome.getFitness();
+        if(stableTimes > 15)
+            break;
     }
 }
 
@@ -33,9 +42,10 @@ void GeneticAlgorithm::initGA() {
     // 随机生成种群
     population = 100;
     srand(time(0));
+    _graph.run();
     for(int i = 0; i < population; i++) {
         TaskProcessor tPro(_tSet, _cSet);
-        Chromosome ch(tPro);
+        Chromosome ch(tPro, _graph);
         _chromosomeSet.push_back(ch);
         //ch.printGenes();
     }
@@ -63,27 +73,23 @@ void GeneticAlgorithm::initializeMutateProbability() {
 void GeneticAlgorithm::selectChromosome() {
     //cout << "select" << endl;
     int indexOf = -1;
-    int minFit = INT_MAX;
-    //cout << "----" << _chromosomeSet.size() << "------" << endl;
+    float minFit = numeric_limits<float>::max();
     for(int i = 0; i < _chromosomeSet.size(); i++) {
-        //cout << "enter  " << i << endl;
-        //_chromosomeSet[i].printGenes();
         _chromosomeSet[i].calculate(_graph, _tSet, _cSet);
-        //cout << _chromosomeSet[i].getFitness() << endl;
-        //cout << "finish calculate" << endl;
         if(minFit > _chromosomeSet[i].getFitness()) {
             minFit = _chromosomeSet[i].getFitness();
             indexOf = i;
         }
     }
     _bestChromosome = _chromosomeSet[indexOf];
+    //_bestChromosome.printTable();
     vector<Chromosome> newChromosomeSet;
-    for(int i = 0; i < population-(population/4); i++) {
+    for(int i = 0; i < population-(population/10); i++) {
         int pos = rand()%(_chromosomeSet.size());
         //cout << pos << endl;
         newChromosomeSet.push_back(_chromosomeSet[pos]);
     }
-    for(int i = 0; i < population/4; i++)
+    for(int i = 0; i < population/10; i++)
         newChromosomeSet.push_back(_bestChromosome);
     _chromosomeSet = newChromosomeSet;
 }
