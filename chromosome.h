@@ -20,29 +20,48 @@ public:
     ~Chromosome();
 
     void calculate(const Graph& G, const TaskSet& tSet, const CarSet& cSet);
+
     double getFitness() const;
     int getLongest() const;
     int getShortest() const;
-    void returnToFalse() { isCalculate = false; }
+    void setFitness(double fitness) { _fitness = fitness; }
+
     void printGenes() const;
     void printTable();
+
     void clear() { _table.clear(); }
 
-    int getCrossoverIndex() const { return crossoverIndex; }
-    int getMutateIndex() const { return mutateIndex; }
-    void setCrossoverIndex(int index) { crossoverIndex = index; }
-    void setMutateIndex(int index) { mutateIndex = index; }
+    const vector<int>& getCrossoverIndexArr() const { return crossoverIndexArr; }
+    const vector<int>& getMutateIndexArr() const { return mutateIndexArr; }
+    void setCrossoverIndexArr(const vector<int>& indexArr) { crossoverIndexArr = indexArr; }
+    void setMutateIndexArr(const vector<int>& indexArr) { mutateIndexArr = indexArr; }
 
 private:
     TimeWindowTable _table;
+
+    // 基因组，代表的是每个车辆的任务执行顺序
     vector<vector<int>> genes;
+
+    // 适应度相关
     double _fitness;
     int _longest;
     int _shortest;
     int _carNum;
+
+    // 标记是否以及计算过，或者交叉(变异)过
     bool isCalculate;
-    int crossoverIndex;
-    int mutateIndex;
+    bool isChange;
+
+    // 记录交叉、变异开始的起始坐标
+    vector<int> crossoverIndexArr;
+    vector<int> mutateIndexArr;
+
+    // 分别用于初试计算和交叉(变异)后的计算
+    void calculateFromHead(const Graph& G, const TaskSet& tSet, const CarSet& cSet);
+    void calculateFromMiddle(const Graph& G, const TaskSet& tSet, const CarSet& cSet);
+
+    void calculateReturnToFalse() { isCalculate = false; }
+    void changeReturnToTrue() { isChange = true; }
 };
 
 vector<Chromosome> crossover(Chromosome arg1, Chromosome arg2);
