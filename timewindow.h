@@ -14,6 +14,8 @@ public:
     TimeWindow(float enterTime, float exitTime) : _enterTime(enterTime), _exitTime(exitTime) { }
     TimeWindow(float enterTime, float exitTime, int carID, int edgeID);
     TimeWindow(float enterTime, int len, int vel);
+
+    TimeWindow& operator=(const TimeWindow& tw);
     void setTime(float enterTime, float exitTime);
     void setDirection(bool direction);
     void setCarID(int carID);

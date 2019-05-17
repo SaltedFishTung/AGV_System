@@ -13,6 +13,14 @@ TimeWindow::TimeWindow(float enterTime, float exitTime, int carID, int edgeID) {
     _edgeID = edgeID;
 }
 
+TimeWindow& TimeWindow::operator=(const TimeWindow& tw) {
+    _enterTime = tw._enterTime;
+    _exitTime = tw._exitTime;
+    _direction = tw._direction;
+    _carID = tw._carID;
+    _edgeID = tw._edgeID;
+}
+
 void TimeWindow::setTime(float enterTime, float exitTime) {
     _enterTime = enterTime;
     _exitTime = exitTime;

@@ -1,17 +1,11 @@
 #include "timewindowtable.h"
+#include <time.h>
 
 TimeWindowTable::TimeWindowTable(int carNum, int edgeNum) {
     for(int i = 0; i < carNum; i++)
         _carAxis.push_back(TimeWindowsByCar(TimeWindow(0.0, 0.0, i+1, 0)));
     for(int i = 0; i < edgeNum+1; i++)
         _edgeAxis.push_back(TimeWindowsByEdge(TimeWindow(0.0, 0.0, 0, i+1)));
-}
-
-TimeWindowTable::~TimeWindowTable() {
-//    for(int i = 0; i < _carAxis.size(); i++)
-//        _carAxis[i].clear();
-//    for(int i = 0; i < _edgeAxis.size(); i++)
-//        _edgeAxis[i].clear();
 }
 
 void TimeWindowTable::setTable(int carNum, int edgeNum) {
@@ -26,6 +20,7 @@ float TimeWindowTable::addPathInfo(int carIndex, const vector<int>& pathInfo, Gr
     while(true) {
         int s = *iter;
         int e = *(++iter);
+        //clock_t startTime, endTime;
         if(iter != pathInfo.begin()+1)
             G.resume();
         if(iter == pathInfo.end())
@@ -37,7 +32,10 @@ float TimeWindowTable::addPathInfo(int carIndex, const vector<int>& pathInfo, Gr
         tw.setDirection(s < e);
         tw.setCarID(carIndex);
         tw.setEdgeID(edgeIndex);
+        //startTime = clock();
         TimeWindowsByEdge::iterator indexIter = isCollision(edgeIndex, tw);
+        //endTime = clock();
+        //cout << "judge cost " << endTime-startTime << " times" << endl;
         if(indexIter == _edgeAxis[edgeIndex].begin()) {
             Graph A(G, s, e);
             if(A.isAlone(s)) {  // s点已经完全孤立时，回溯

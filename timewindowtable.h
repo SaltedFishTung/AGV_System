@@ -15,8 +15,7 @@ public:
 
     TimeWindowTable() { }
     TimeWindowTable(int carNum, int edgeNum);
-    ~TimeWindowTable();
-    TimeWindowTable& operator=(const TimeWindowTable table) {
+    TimeWindowTable& operator=(const TimeWindowTable& table) {
         _carAxis = table._carAxis;
         _edgeAxis = table._edgeAxis;
     }

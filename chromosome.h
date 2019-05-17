@@ -11,38 +11,41 @@ using namespace std;
 
 class Chromosome {
 public:
-    friend vector<Chromosome> crossover(Chromosome arg1, Chromosome arg2, int indexOf);
+    friend vector<Chromosome> crossover(Chromosome arg1, Chromosome arg2);
     friend Chromosome mutate(Chromosome arg);
     Chromosome();
     Chromosome(const TaskProcessor& tPro, const Graph& G);
-    Chromosome& operator =(const Chromosome& Ch) {
-        genes = Ch.genes;
-        _fitness = Ch._fitness;
-        _longest = Ch._longest;
-        _shortest = Ch._shortest;
-        _carNum = Ch._carNum;
-        _table = Ch._table;
-        return *this;
-    }
+    Chromosome(const Chromosome& Ch);
+    Chromosome& operator=(const Chromosome& Ch);
     ~Chromosome();
 
     void calculate(const Graph& G, const TaskSet& tSet, const CarSet& cSet);
-    float getFitness() const;
+    double getFitness() const;
     int getLongest() const;
     int getShortest() const;
+    void returnToFalse() { isCalculate = false; }
     void printGenes() const;
     void printTable();
     void clear() { _table.clear(); }
+
+    int getCrossoverIndex() const { return crossoverIndex; }
+    int getMutateIndex() const { return mutateIndex; }
+    void setCrossoverIndex(int index) { crossoverIndex = index; }
+    void setMutateIndex(int index) { mutateIndex = index; }
+
 private:
     TimeWindowTable _table;
     vector<vector<int>> genes;
-    float _fitness;
+    double _fitness;
     int _longest;
     int _shortest;
     int _carNum;
+    bool isCalculate;
+    int crossoverIndex;
+    int mutateIndex;
 };
 
-vector<Chromosome> crossover(Chromosome arg1, Chromosome arg2, int indexOf);
+vector<Chromosome> crossover(Chromosome arg1, Chromosome arg2);
 Chromosome mutate(Chromosome arg);
 
 #endif // CHROMOSOME_H

@@ -17,18 +17,21 @@ void GeneticAlgorithm::run() {
     int stableTimes = 0;
     float lastFitness = 0.0;
     for(int count = 0; count < 200; count++) {
+        srand(time(0));
         // 选择 交叉 变异 一条龙服务
         cout << "1---" << count << endl;
         selectChromosome();
         cout << "2---" << count << endl;
+        initializeCrossoverProbability();
         crossoverChromosome();
         cout << "3---" << count << endl;
+        initializeMutateProbability();
         mutateChromosome();
         cout << "4---" << count << endl << endl;
-        _bestChromosome.printGenes();
-        cout << _bestChromosome.getFitness() << endl;
+        //_bestChromosome.printGenes();
+        cout << setprecision(20) << _bestChromosome.getFitness() << endl;
         cout << "-----------------------------" << endl;
-        if(_bestChromosome.getFitness() == lastFitness)
+        if(_bestChromosome.getFitness() - lastFitness <= MIN_ERROR)
             ++stableTimes;
         else
             stableTimes = 0;
@@ -47,64 +50,75 @@ void GeneticAlgorithm::initGA() {
         TaskProcessor tPro(_tSet, _cSet);
         Chromosome ch(tPro, _graph);
         _chromosomeSet.push_back(ch);
-        //ch.printGenes();
     }
-    initializeCrossoverProbability();
-    initializeMutateProbability();
     crossoverProbability = 0.7;
     mutateProbability = 0.2;
     taskNum = _tSet.size();
     carNum = _cSet.size();
-    //cout << "finish init";
 }
 
 void GeneticAlgorithm::initializeCrossoverProbability() {
-    srand(time(0));
-    for(int i = 0; i < population; i++)
-        _crossoverProbabilityArray.push_back(rand()%100/(double)101);
+    for(int i = 0; i < _chromosomeSet.size(); i++)
+        _crossoverProbabilityArray.push_back(((double)rand())/RAND_MAX);
 }
 
 void GeneticAlgorithm::initializeMutateProbability() {
-    srand(time(0));
-    for(int i = 0; i < population; i++)
-        _mutateProbabilityArray.push_back(rand()%100/(double)101);
+    for(int i = 0; i < _chromosomeSet.size(); i++)
+        _mutateProbabilityArray.push_back(((double)rand())/RAND_MAX);
+}
+
+void GeneticAlgorithm::calculateFitness() {
+    float maxFit = numeric_limits<double>::min();
+    int index = -1;
+    for(int i = 0; i < _chromosomeSet.size(); i++) {
+        _chromosomeSet[i].calculate(_graph, _tSet, _cSet);
+        if(maxFit < _chromosomeSet[i].getFitness())
+            index = i;
+    }
+    _bestChromosome = _chromosomeSet[index];
+}
+
+void GeneticAlgorithm::calculateTotalFitness() {
+    _totalFitness = 0.0;
+    for(const Chromosome& ch : _chromosomeSet)
+        _totalFitness += ch.getFitness();
+    //cout << "total: " << _totalFitness << endl;
 }
 
 void GeneticAlgorithm::selectChromosome() {
-    //cout << "select" << endl;
-    int indexOf = -1;
-    float minFit = numeric_limits<float>::max();
-    for(int i = 0; i < _chromosomeSet.size(); i++) {
-        _chromosomeSet[i].calculate(_graph, _tSet, _cSet);
-        if(minFit > _chromosomeSet[i].getFitness()) {
-            minFit = _chromosomeSet[i].getFitness();
-            indexOf = i;
+    clock_t startTime, endTime;
+    vector<Chromosome> newChromosomeSet;
+    int selectBestNum = population/4;
+    startTime = clock();
+    calculateFitness();
+    calculateTotalFitness();
+    endTime = clock();
+    cout << "calculate cost " << endTime-startTime << " times" << endl;
+
+    // 新种群的四分之一是最优染色体
+    for(int i = 0; i < selectBestNum; i++)
+        newChromosomeSet.push_back(_bestChromosome);
+    // 剩下四分之三采取轮盘
+    for(int i = 0; i < population-selectBestNum; i++) {
+        double random = ((double)rand())/RAND_MAX;
+        for(int j = 0; j < _chromosomeSet.size(); j++) {
+            if(random <= _chromosomeSet[i].getFitness()/_totalFitness) {
+                newChromosomeSet.push_back(_chromosomeSet[j]);
+                break;
+            }
+            else
+                random -= _chromosomeSet[i].getFitness()/_totalFitness;
         }
     }
-    _bestChromosome = _chromosomeSet[indexOf];
-    //_bestChromosome.printTable();
-    vector<Chromosome> newChromosomeSet;
-    for(int i = 0; i < population-(population/10); i++) {
-        int pos = rand()%(_chromosomeSet.size());
-        //cout << pos << endl;
-        newChromosomeSet.push_back(_chromosomeSet[pos]);
-    }
-    for(int i = 0; i < population/10; i++)
-        newChromosomeSet.push_back(_bestChromosome);
     _chromosomeSet = newChromosomeSet;
 }
 
 void GeneticAlgorithm::crossoverChromosome() {
     int ChromosomePopulation = _chromosomeSet.size();
     for(int i = 0; i+1 < ChromosomePopulation; i+=2) {
-        //cout << "enter crossover  " << i << endl;
-        //cout << _crossoverProbabilityArray[i] << "  " << crossoverProbability << endl;
         if(_crossoverProbabilityArray[i] < crossoverProbability) {
-            unsigned num = taskNum/carNum;
-            int indexOf = rand()%num;
-            //cout << "enter crossover  " << i << "  " << indexOf << endl;
-            vector<Chromosome> chromosomeArr =
-                    crossover(_chromosomeSet[i], _chromosomeSet[i+1], indexOf);
+            vector<Chromosome> chromosomeArr(
+                        crossover(_chromosomeSet[i], _chromosomeSet[i+1]));
             _chromosomeSet.push_back(chromosomeArr[0]);
             _chromosomeSet.push_back(chromosomeArr[1]);
         }
@@ -113,13 +127,8 @@ void GeneticAlgorithm::crossoverChromosome() {
 
 void GeneticAlgorithm::mutateChromosome() {
     int ChromosomePopulation = _chromosomeSet.size();
-    //cout << ChromosomePopulation << endl;
     for(int i = 0; i < ChromosomePopulation; i++) {
-        //cout << "mutate  " << i << endl;
-        //cout << _mutateProbabilityArray[i] << " " << mutateProbability << endl;
         if(_mutateProbabilityArray[i] < mutateProbability) {
-            //cout << "mutate  " << i << endl;
-            //_chromosomeSet[i].printGenes();
             _chromosomeSet.push_back(mutate(_chromosomeSet[i]));
         }
     }
