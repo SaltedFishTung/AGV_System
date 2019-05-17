@@ -1,17 +1,18 @@
-//#include "mainwindow.h"
-//#include <QApplication>
+#include <QApplication>
+#include "mainwindow.h"
 #include "task.h"
 #include "graph.h"
 #include "geneticalgorithm.h"
 
 int main(int argc, char *argv[]) {
-    /*
     QApplication a(argc, argv);
-    MainWindow w;
+    MainWindow w(nullptr);
+    w.setMapModel("C:\\Users\\10761\\Documents\\AGV_System\\map\\vers.txt",
+                  "C:\\Users\\10761\\Documents\\AGV_System\\map\\matrix.txt");
+    w.setCarGroupModel("C:\\Users\\10761\\Documents\\AGV_System\\map\\cars.txt");
     w.show();
-
     return a.exec();
-    */
+    /*
     Graph G("C:\\Users\\10761\\Documents\\AGV_System\\map\\vers.txt",
             "C:\\Users\\10761\\Documents\\AGV_System\\map\\matrix.txt");
     //cout << "run finish" << endl;
@@ -22,5 +23,6 @@ int main(int argc, char *argv[]) {
     //cout << "finish init";
     GA.run();
     //cout << "end" << endl;
-    return 0;
+    */
+    //return 0;
 }

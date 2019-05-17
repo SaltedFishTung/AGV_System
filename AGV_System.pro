@@ -27,7 +27,6 @@ SOURCES += main.cpp\
     node.cpp \
     graph.cpp \
     ksp.cpp \
-    pathlibrary.cpp \
     mainwindow.cpp \
     widget.cpp \
     car.cpp \
@@ -38,13 +37,17 @@ SOURCES += main.cpp\
     timewindow.cpp \
     timewindowtable.cpp \
     timewindowsbycar.cpp \
-    timewindowsbyedge.cpp
+    timewindowsbyedge.cpp \
+    pointgroupmodel.cpp \
+    mypainterwidget.cpp \
+    mapmodel.cpp \
+    edgegroupmodel.cpp \
+    cargroupmodel.cpp
 
 HEADERS  += \
     node.h \
     graph.h \
     ksp.h \
-    pathlibrary.h \
     mainwindow.h \
     widget.h \
     car.h \
@@ -55,7 +58,12 @@ HEADERS  += \
     timewindow.h \
     timewindowtable.h \
     timewindowsbycar.h \
-    timewindowsbyedge.h
+    timewindowsbyedge.h \
+    pointgroupmodel.h \
+    mypainterwidget.h \
+    mapmodel.h \
+    edgegroupmodel.h \
+    cargroupmodel.h
 
 FORMS    += \
     mainwindow.ui \

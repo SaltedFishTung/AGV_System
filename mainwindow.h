@@ -1,17 +1,24 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QMainWindow>
-#include "widget.h"
+#include <QWidget>
+#include <string>
+#include "mapmodel.h"
+#include "cargroupmodel.h"
+using namespace std;
 
-class MainWindow : public QMainWindow
-{
-    Q_OBJECT
+class MainWindow : public QWidget {
 public:
-    explicit MainWindow(QWidget *parent = 0);
+    MainWindow(QWidget *parent);
     ~MainWindow();
+
+    void setMapModel(const string& versFilePath, const string& matrixFilePath);
+    void setCarGroupModel(const string& carsFilePath);
+
+    void paintEvent(QPaintEvent*);
 private:
-    Widget *widget;
+    MapModel mapModel;
+    CarGroupModel cGroupModel;
 };
 
 #endif // MAINWINDOW_H
