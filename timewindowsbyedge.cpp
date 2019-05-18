@@ -136,7 +136,7 @@ TimeWindowsByEdge::iterator TimeWindowsByEdge::onlyOneCanEnter(const TimeWindow 
     return this->begin();
 }
 
-ostream& operator<<(ostream& out, TimeWindowsByEdge& twList) {
+ostream& operator<<(ostream& out, const TimeWindowsByEdge& twList) {
     cout << "edge " << twList.front().getEdgeID() << ": ";
     auto iter = twList.begin();
     while (++iter != twList.end()) {

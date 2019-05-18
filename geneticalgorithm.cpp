@@ -44,6 +44,8 @@ void GeneticAlgorithm::run() {
     }
     endTime = clock();
     cout << endTime-startTime << " times" << endl;
+//    for(const TimeWindowsByCar& twByCar : _bestChromosome.getTable().getCarsTimeWindow())
+//        cout << twByCar << endl;
 }
 
 void GeneticAlgorithm::initGA() {

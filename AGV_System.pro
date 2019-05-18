@@ -39,7 +39,6 @@ SOURCES += main.cpp\
     timewindowsbycar.cpp \
     timewindowsbyedge.cpp \
     pointgroupmodel.cpp \
-    mypainterwidget.cpp \
     mapmodel.cpp \
     edgegroupmodel.cpp \
     cargroupmodel.cpp
@@ -60,7 +59,6 @@ HEADERS  += \
     timewindowsbycar.h \
     timewindowsbyedge.h \
     pointgroupmodel.h \
-    mypainterwidget.h \
     mapmodel.h \
     edgegroupmodel.h \
     cargroupmodel.h

@@ -8,7 +8,7 @@ using namespace std;
 
 class TimeWindowsByEdge : public list<TimeWindow> {
 public:
-    friend ostream& operator<<(ostream& out, TimeWindowsByEdge& twList);
+    friend ostream& operator<<(ostream& out, const TimeWindowsByEdge& twList);
 
     TimeWindowsByEdge();
     TimeWindowsByEdge(const TimeWindow& tw) { push_back(tw); }
@@ -16,5 +16,7 @@ public:
 private:
     TimeWindowsByEdge::iterator onlyOneCanEnter(const TimeWindow& currentTimeWindow);
 };
+
+ostream& operator<<(ostream& out, const TimeWindowsByEdge& twList);
 
 #endif // TIMEWINDOWSBYEDGE_H

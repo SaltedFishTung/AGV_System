@@ -25,6 +25,7 @@ public:
     int getLongest() const;
     int getShortest() const;
     void setFitness(double fitness) { _fitness = fitness; }
+    const TimeWindowTable& getTable() const { return _table; }
 
     void printGenes() const;
     void printTable();

@@ -19,9 +19,14 @@ public:
     int carNum;
     double crossoverProbability;
     double mutateProbability;
+
     GeneticAlgorithm(CarSet& cSet, TaskSet& tSet, Graph& graph) :
         _cSet(cSet), _tSet(tSet), _graph(graph) { }
+
     void run();
+    const vector<TimeWindowsByCar>& getResultPath() const {
+        return _bestChromosome.getTable().getCarsTimeWindow();
+    }
 private:
     // 输入，车辆集、任务集、地图
     CarSet _cSet;

@@ -26,6 +26,8 @@ public:
     float addPathInfo(int carIndex, const vector<int>& pathInfo, Graph& G, int count);
     TimeWindowsByEdge::iterator isCollision(int edgeIndex, const TimeWindow& tw);
     void clear();
+
+    const vector<TimeWindowsByCar>& getCarsTimeWindow() const { return _carAxis; }
 private:
     vector<TimeWindowsByCar> _carAxis;
     vector<TimeWindowsByEdge> _edgeAxis;
