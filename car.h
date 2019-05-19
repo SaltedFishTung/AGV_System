@@ -2,6 +2,7 @@
 #define CAR_H
 
 #include <vector>
+#include <string>
 using namespace std;
 
 class Car {
@@ -18,6 +19,7 @@ public:
 class CarSet : public vector<Car> {
 public :
     CarSet();
+    CarSet(const string& carsFilePath);
     ~CarSet() {}
 };
 
