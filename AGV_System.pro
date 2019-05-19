@@ -41,7 +41,8 @@ SOURCES += main.cpp\
     pointgroupmodel.cpp \
     mapmodel.cpp \
     edgegroupmodel.cpp \
-    cargroupmodel.cpp
+    cargroupmodel.cpp \
+    pathlibrary.cpp
 
 HEADERS  += \
     node.h \
@@ -61,7 +62,8 @@ HEADERS  += \
     pointgroupmodel.h \
     mapmodel.h \
     edgegroupmodel.h \
-    cargroupmodel.h
+    cargroupmodel.h \
+    pathlibrary.h
 
 FORMS    += \
     mainwindow.ui \

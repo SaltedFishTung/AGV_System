@@ -21,6 +21,8 @@ float TimeWindowTable::addPathInfo(int carIndex, const vector<int>& pathInfo, Gr
     try {
         if(count > 6)
             return numeric_limits<float>::max();
+        if(this->_carAxis.size() > 100)
+            return numeric_limits<float>::max();
         auto iter = pathInfo.begin();
         while(true) {
             int s = *iter;

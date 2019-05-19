@@ -25,9 +25,7 @@ public:
     }
     const vector<int>& getTasksIndex() const { return tasksIndex; }
     void setTable(int carNum, int edgeNum);
-    int addTimeWindow(int carIndex, int edgeIndex);
     float addPathInfo(int carIndex, const vector<int>& pathInfo, Graph& G, int count);
-    TimeWindowsByEdge::iterator isCollision(int edgeIndex, const TimeWindow& tw);
     void clear();
     void clearFromIndex();
 
@@ -42,6 +40,8 @@ private:
     vector<TimeWindowsByCar> _carAxis;
     vector<TimeWindowsByEdge> _edgeAxis;
 
+
+    TimeWindowsByEdge::iterator isCollision(int edgeIndex, const TimeWindow& tw);
     vector<int> tasksIndex;
     int pointsIndex[MAX_CAR][MAX_TASK];
 };

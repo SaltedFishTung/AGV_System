@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <iomanip>
+#include <memory>
 #include "car.h"
 #include "task.h"
 #include "graph.h"

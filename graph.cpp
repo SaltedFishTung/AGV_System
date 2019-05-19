@@ -13,8 +13,9 @@ Graph::Graph(const string &versFilePath, const string &matrixFilePath) {
     ifstream inVers(versFilePath);
     ifstream inMatrix(matrixFilePath);
     string line;
+    _verNum = 0;
     while(getline(inVers, line)) {
-        _vertices.push_back(Vertex(line));
+        _verNum++;
     }
     _graph = new int*[getVerNum()];
     _distance = new int*[getVerNum()];
@@ -55,52 +56,8 @@ Graph::Graph(const string &versFilePath, const string &matrixFilePath) {
     inMatrix.close();
 }
 
-Graph::Graph(const vector<Vertex>& vers) {
-    _vertices = vers;
-    _graph = new int*[getVerNum()];
-    _distance = new int*[getVerNum()];
-    _path = new int*[getVerNum()];
-    _edgeId = new int*[getVerNum()];
-    for(int v = 0; v < getVerNum(); v++) {
-        _graph[v] = new int[getVerNum()];
-        _distance[v] = new int[getVerNum()];
-        _path[v] = new int[getVerNum()];
-        _edgeId[v] = new int[getVerNum()];
-    }
-    for(int v = 0; v < getVerNum(); v++) {
-        for(int u = 0; u < getVerNum(); u++) {
-            // 初始化邻接表
-            if(getVer(v).x == getVer(u).x)
-                _graph[v][u] = abs(getVer(v).y-getVer(u).y);
-            else if(getVer(v).y == getVer(u).y)
-                _graph[v][u] = abs(getVer(v).x-getVer(u).x);
-            else
-                _graph[v][u] = INT_MAX;
-            // 初始化dist, path，res
-            if(v == u) {
-                _distance[v][u] = 0;
-                _path[v][u] = 0;    // 0代表已到达
-            }
-            else {
-                _distance[v][u] = INT_MAX;
-                _path[v][u] = -1;   // -1代表仍未寻找
-            }
-        }
-    }
-    _edgeNum = 0;
-    for(int i = 0; i < getVerNum(); i++) {
-        for(int j = 0; j < i; j++)
-            if(_graph[i][j] != -1) {
-                _edgeId[i][j] = ++_edgeNum;
-                _edgeId[j][i] = _edgeId[i][j];
-            }
-    }
-}
-
 Graph::Graph(const Graph &G) {
-    for(auto ver : G._vertices) {
-        _vertices.push_back(ver);
-    }
+    _verNum = G._verNum;
     _graph = new int*[getVerNum()];
     _distance = new int*[getVerNum()];
     _path = new int*[getVerNum()];
@@ -122,9 +79,7 @@ Graph::Graph(const Graph &G) {
 }
 
 Graph::Graph(const Graph &G, int s, int e) {
-    for(auto ver : G._vertices) {
-        _vertices.push_back(ver);
-    }
+    _verNum = G._verNum;
     _graph = new int*[getVerNum()];
     _distance = new int*[getVerNum()];
     _path = new int*[getVerNum()];
@@ -166,29 +121,6 @@ void Graph::run() {
     for(int v = 0; v < getVerNum(); v++)
         Dijstra(v);
     setPathInfo();
-}
-
-void Graph::init() {
-    for(int v = 1; v < getVerNum(); v++) {
-        for(int u = 1; u < getVerNum(); u++) {
-            // 初始化邻接表
-            if(getVer(v).x == getVer(u).x)
-                _graph[v][u] = abs(getVer(v).y-getVer(u).y);
-            else if(getVer(v).y == getVer(u).y)
-                _graph[v][u] = abs(getVer(v).x-getVer(u).x);
-            else
-                _graph[v][u] = INT_MAX;
-            // 初始化dist, path，res
-            if(v == u) {
-                _distance[v][u] = 0;
-                _path[v][u] = 0;    // 0代表已到达
-            }
-            else {
-                _distance[v][u] = INT_MAX;
-                _path[v][u] = -1;   // -1代表仍未寻找
-            }
-        }
-    }
 }
 
 int Graph::getShortestDist(int s, int e) const {
@@ -245,18 +177,6 @@ void Graph::Dijstra(int s) {
                 Q.push(Dist(v, _distance[s][v]));
                 _path[v][s] = dist.ver;
             }
-        }
-    }
-}
-
-void Graph::removeEdge(int s, int e) {
-    _graph[s][e] = _graph[e][s] = -1;
-    for(int i = 0; i < getVerNum(); i++) {
-        for(int j = 0; j < getVerNum(); j++) {
-            if(i == j)
-                _distance[i][j] = 0;
-            else
-                _distance[i][j] = INT_MAX;
         }
     }
 }
