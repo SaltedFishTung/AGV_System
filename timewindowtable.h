@@ -1,6 +1,9 @@
 #ifndef TIMEWINDOWTABLE_H
 #define TIMEWINDOWTABLE_H
 
+#define MAX_CAR 10
+#define MAX_TASK 50
+
 #include <vector>
 #include <iostream>
 #include "graph.h"
@@ -20,17 +23,27 @@ public:
         _edgeAxis = table._edgeAxis;
         return *this;
     }
-
+    const vector<int>& getTasksIndex() const { return tasksIndex; }
     void setTable(int carNum, int edgeNum);
     int addTimeWindow(int carIndex, int edgeIndex);
     float addPathInfo(int carIndex, const vector<int>& pathInfo, Graph& G, int count);
     TimeWindowsByEdge::iterator isCollision(int edgeIndex, const TimeWindow& tw);
     void clear();
+    void clearFromIndex();
+
+    void setTasksIndex(const vector<int>& ivec);
+    void setPointIndex(int carIndex, int pointIndex) {
+
+    }
 
     const vector<TimeWindowsByCar>& getCarsTimeWindow() const { return _carAxis; }
+    const TimeWindowsByCar& getCarTimeWindow(int carIndex) const { return _carAxis[carIndex]; }
 private:
     vector<TimeWindowsByCar> _carAxis;
     vector<TimeWindowsByEdge> _edgeAxis;
+
+    vector<int> tasksIndex;
+    int pointsIndex[MAX_CAR][MAX_TASK];
 };
 
 #endif // TIMEWINDOWTABLE_H

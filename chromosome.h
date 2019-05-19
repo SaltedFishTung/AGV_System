@@ -27,6 +27,9 @@ public:
     void setFitness(double fitness) { _fitness = fitness; }
     const TimeWindowTable& getTable() const { return _table; }
 
+    void setCalculate(bool flag) { isCalculate = flag; }
+    void setChange(bool flag) { isChange = flag; }
+
     void printGenes() const;
     void printTable();
 

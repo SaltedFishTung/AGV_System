@@ -48,7 +48,8 @@ TimeWindowsByEdge::iterator TimeWindowsByEdge::canEnter(const TimeWindow &curren
                 return this->end();
             // 同一辆车来回时
             if(nextIter->getCarID() == currentTimeWindow.getCarID() &&
-               nextIter->getExitTime() == currentTimeWindow.getEnterTime())
+               nextIter->getExitTime() == currentTimeWindow.getEnterTime() &&
+               nextIter == backIter)
                 return ++nextIter;
         }
         // 该段相邻的两个时间窗方向前一个与当前车方向相向，后一个相同
@@ -59,7 +60,6 @@ TimeWindowsByEdge::iterator TimeWindowsByEdge::canEnter(const TimeWindow &curren
                nextIter->getEnterTime() > currentTimeWindow.getEnterTime())
                 return nextIter;
 
-            // 不是同一辆车时
             // 在两者之前
             if(currIter->getEnterTime() > currentTimeWindow.getExitTime())
                 return currIter;
@@ -79,7 +79,6 @@ TimeWindowsByEdge::iterator TimeWindowsByEdge::canEnter(const TimeWindow &curren
                nextIter->getEnterTime() > currentTimeWindow.getExitTime())
                 return nextIter;
 
-            // 不是同一辆车时
             // 在两者之前
             if(currIter->getEnterTime() > currentTimeWindow.getExitTime())
                 return currIter;
@@ -91,9 +90,11 @@ TimeWindowsByEdge::iterator TimeWindowsByEdge::canEnter(const TimeWindow &curren
             else if(nextIter->getExitTime() < currentTimeWindow.getEnterTime() &&
                     nextIter == backIter)
                 return this->end();
+
             // 同一辆车来回时
             if(nextIter->getCarID() == currentTimeWindow.getCarID() &&
-               nextIter->getExitTime() == currentTimeWindow.getEnterTime())
+               nextIter->getExitTime() == currentTimeWindow.getEnterTime() &&
+               nextIter == backIter)
                 return ++nextIter;
         }
         ++currIter;

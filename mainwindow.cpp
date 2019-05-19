@@ -26,22 +26,25 @@ void MainWindow::setCarGroupModel(const string &carsFilePath) {
 void MainWindow::setTimeWindowGroup(const vector<TimeWindowsByCar> &twGroup) {
     for(const TimeWindowsByCar& twByCar : twGroup) {
         vector<int> points;
-        for(const TimeWindow& tw : twByCar) {
+        TimeWindowsByCar::const_iterator iter = twByCar.begin();
+        while (++iter != twByCar.end()) {
             int point;
-            if(tw.getDirection())
-                point = mapModel.getEdgeStart(tw.getEdgeID());
+            if(iter->getDirection())
+                point = mapModel.getEdgeStart(iter->getEdgeID());
             else
-                point = mapModel.getEdgeEnd(tw.getEdgeID());
+                point = mapModel.getEdgeEnd(iter->getEdgeID());
             points.push_back(point);
         }
         if(twByCar.back().getDirection())
             points.push_back(mapModel.getEdgeEnd(twByCar.back().getEdgeID()));
         else
             points.push_back(mapModel.getEdgeStart(twByCar.back().getEdgeID()));
+        cout << twByCar << endl;
         pointsSet.push_back(points);
         driftsOfX.push_back(0);
         driftsOfY.push_back(0);
-        twGroupIndex.push_back(0);
+        twGroupIndex.push_back(1);
+        pointsIndex.push_back(0);
     }
     for(const TimeWindowsByCar& twByCar : twGroup) {
         TimeWindowsByCar::const_iterator iter = twByCar.begin();
@@ -51,42 +54,39 @@ void MainWindow::setTimeWindowGroup(const vector<TimeWindowsByCar> &twGroup) {
         }
         this->twGroup.push_back(twVec);
     }
+    cout << "points set-----" << endl;
+    for(int i = 0; i < pointsSet.size(); i++) {
+        cout << "car" << i+1 << ": ";
+        for(int j = 0; j < pointsSet[i].size(); j++)
+            cout << pointsSet[i][j] << " ";
+        cout << endl;
+    }
 }
 
-void MainWindow::paintEvent(QPaintEvent* event) {
+void MainWindow::paintEvent(QPaintEvent*) {
     QPainter painter(this);
     // 画地图
     painter.setPen(QPen(Qt::white, 2));
     int offsetOfX = 350;
     int offsetOfY = 50;
     for(int i = 0; i < mapModel.getEdgeNum(); i++) {
-        int point1 = mapModel.getEdgeStart(i);
-        int point2 = mapModel.getEdgeEnd(i);
+        int point1 = mapModel.getEdgeStart(i+1);
+        int point2 = mapModel.getEdgeEnd(i+1);
         painter.drawLine(
             mapModel.getPointX(point1)+offsetOfX, mapModel.getPointY(point1)+offsetOfY,
             mapModel.getPointX(point2)+offsetOfX, mapModel.getPointY(point2)+offsetOfY);
     }
-    for(int i = 0; i < cGroupModel.size(); i++) {
+
+    // 画车
+    for(unsigned i = 0; i < cGroupModel.size(); i++) {
         int driftLen = sqrt(driftsOfX[i]*driftsOfX[i] + driftsOfY[i]*driftsOfY[i]);
-        int point1, point2;
-        if(twGroupIndex[i] >= twGroup.size())
+        if(pointsIndex[i]+1 >= pointsSet[i].size())
             continue;
-        if(twGroup[i][twGroupIndex[i]].getDirection()) {
-            point1 = mapModel.getEdgeStart(twGroup[i][twGroupIndex[i]].getEdgeID());
-            point2 = mapModel.getEdgeEnd(twGroup[i][twGroupIndex[i]].getEdgeID());
-        } else {
-            point1 = mapModel.getEdgeEnd(twGroup[i][twGroupIndex[i]].getEdgeID());
-            point2 = mapModel.getEdgeStart(twGroup[i][twGroupIndex[i]].getEdgeID());
-        }
+        int point1 = pointsSet[i][pointsIndex[i]];
+        int point2 = pointsSet[i][pointsIndex[i]+1];
         int deltaX = mapModel.getPointX(point2) - mapModel.getPointX(point1);
         int deltaY = mapModel.getPointY(point2) - mapModel.getPointY(point1);
         int deltaLen = sqrt(deltaX*deltaX + deltaY*deltaY);
-        if(driftLen >= deltaLen) {
-            twGroupIndex[i]++;
-            driftsOfX[i] = 0;
-            driftsOfY[i] = 0;
-            continue;
-        }
         int centerX = mapModel.getPointX(point1)+offsetOfX;
         int centerY = mapModel.getPointY(point1)+offsetOfY;
         int lenth = cGroupModel[i].getLenth();
@@ -109,19 +109,19 @@ void MainWindow::paintEvent(QPaintEvent* event) {
                    centerY + driftsOfY[i] - width,
                    2*lenth, 2*width);
         painter.drawRect(rect);
+        if(driftLen >= deltaLen) {
+            twGroupIndex[i]++;
+            pointsIndex[i]++;
+            driftsOfX[i] = 0;
+            driftsOfY[i] = 0;
+        }
     }
 }
 
-void MainWindow::timerEvent(QTimerEvent *event) {
-    for(int i = 0; i < cGroupModel.size(); i++) {
-        int point1, point2;
-        if(twGroup[i][twGroupIndex[i]].getDirection()) {
-            point1 = mapModel.getEdgeStart(twGroup[i][twGroupIndex[i]].getEdgeID());
-            point2 = mapModel.getEdgeEnd(twGroup[i][twGroupIndex[i]].getEdgeID());
-        } else {
-            point1 = mapModel.getEdgeEnd(twGroup[i][twGroupIndex[i]].getEdgeID());
-            point2 = mapModel.getEdgeStart(twGroup[i][twGroupIndex[i]].getEdgeID());
-        }
+void MainWindow::timerEvent(QTimerEvent *) {
+    for(unsigned i = 0; i < cGroupModel.size(); i++) {
+        int point1 = pointsSet[i][pointsIndex[i]];
+        int point2 = pointsSet[i][pointsIndex[i]+1];
         int deltaX = mapModel.getPointX(point2) - mapModel.getPointX(point1);
         int deltaY = mapModel.getPointY(point2) - mapModel.getPointY(point1);
         driftsOfX[i] += deltaX /

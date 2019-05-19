@@ -1,4 +1,5 @@
 #include "timewindow.h"
+#include <math.h>
 
 TimeWindow::TimeWindow(float enterTime, int len, int vel) {
     _enterTime = enterTime;
@@ -68,4 +69,12 @@ ostream& operator<<(ostream& out, const TimeWindow& tw) {
         << "(" << tw.getEnterTime() << ", " << tw.getExitTime() << ")"
         << "]";
     return out;
+}
+
+bool operator==(const TimeWindow& arg1, const TimeWindow& arg2) {
+    if(arg1._enterTime-arg2._enterTime > -1e-4 && arg1._enterTime-arg2._enterTime < 1e-4 &&
+       arg1._exitTime-arg2._exitTime > -1e-4 && arg1._exitTime-arg2._exitTime < 1e-4 &&
+       arg1._carID == arg2._carID && arg1._edgeID == arg2._edgeID)
+        return true;
+    return false;
 }

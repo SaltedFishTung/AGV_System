@@ -10,6 +10,7 @@ using namespace std;
 class TimeWindow {
 public:
     friend ostream& operator<<(ostream& out, const TimeWindow& tw);
+    friend bool operator==(const TimeWindow& arg1, const TimeWindow& arg2);
 
     TimeWindow(float enterTime, float exitTime) : _enterTime(enterTime), _exitTime(exitTime) { }
     TimeWindow(float enterTime, float exitTime, int carID, int edgeID);

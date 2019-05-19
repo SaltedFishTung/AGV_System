@@ -46,14 +46,11 @@ vector<Chromosome> crossover(Chromosome arg1, Chromosome arg2) {
             ++pos;
         }
     }
+    arg1.isCalculate = arg2.isCalculate = false;
+    arg1.isChange = arg2.isChange = true;
 
-    arg1.calculateReturnToFalse();
-    arg2.calculateReturnToFalse();
-    arg1.changeReturnToTrue();
-    arg2.changeReturnToTrue();
-
-    arg1.setCrossoverIndexArr(posArr);
-    arg2.setCrossoverIndexArr(posArr);
+    arg1._table.setTasksIndex(posArr);
+    arg2._table.setTasksIndex(posArr);
 
     return vector<Chromosome>{arg1, arg2};
 }
@@ -81,9 +78,9 @@ Chromosome mutate(Chromosome arg) {
             posArr.push_back(arg.genes[i].size());
     }
 
-    arg.setMutateIndexArr(posArr);
-    arg.calculateReturnToFalse();
-    arg.changeReturnToTrue();
+    arg._table.setTasksIndex(posArr);
+    arg.isCalculate = false;
+    arg.isChange = true;
 
     return arg;
 }
@@ -117,8 +114,6 @@ Chromosome::Chromosome(const Chromosome &Ch) {
 }
 
 Chromosome::~Chromosome() {
-    genes.clear();
-    _table.clear();
 }
 
 Chromosome& Chromosome::operator =(const Chromosome& Ch) {
@@ -134,8 +129,13 @@ Chromosome& Chromosome::operator =(const Chromosome& Ch) {
 void Chromosome::calculate(const Graph& G, const TaskSet& tSet, const CarSet& cSet) {
     if(isCalculate)
         return;
-    //if(isChange)
-    //    calculateFromMiddle(G, tSet, cSet);
+//    if(isChange) {
+//        vector<int> tasksIndex = _table.getTasksIndex();
+//        for(int carIndex = 0; carIndex < genes.size(); carIndex++) {
+//            if()
+//        }
+//        _table.clearFromIndex();
+//    }
     _carNum = 0;
     float minFit = numeric_limits<float>::max();
     float maxFit = numeric_limits<float>::min();
@@ -160,6 +160,7 @@ void Chromosome::calculate(const Graph& G, const TaskSet& tSet, const CarSet& cS
                     G.getPathInfo(tSet[genes[carIndex][taskIndex]].s,
                     tSet[genes[carIndex][taskIndex]].e));
                 fitness[carIndex] = _table.addPathInfo(carIndex, pathInfo1, graph, 1);
+                _table.getCarTimeWindow(carIndex).size();
             }
             if(taskIndex < genes[carIndex].size()-1) {
                 vector<int> pathInfo2(

@@ -21,13 +21,14 @@ public:
     void setTimeWindowGroup(const vector<TimeWindowsByCar>& twGroup);
 
     //绘图事件
-    void paintEvent(QPaintEvent *event);
+    void paintEvent(QPaintEvent*);
     //定时事件
-    void timerEvent(QTimerEvent *event);
+    void timerEvent(QTimerEvent*);
 private:
     MapModel mapModel;
     CarGroupModel cGroupModel;
     vector<vector<int>> pointsSet;
+    vector<int> pointsIndex;
     vector<vector<TimeWindow>> twGroup;
     vector<int> driftsOfX;
     vector<int> driftsOfY;

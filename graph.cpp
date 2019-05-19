@@ -6,6 +6,7 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <stdlib.h>
 using namespace std;
 
 Graph::Graph(const string &versFilePath, const string &matrixFilePath) {
@@ -44,7 +45,7 @@ Graph::Graph(const string &versFilePath, const string &matrixFilePath) {
     }
     _edgeNum = 0;
     for(int i = 0; i < getVerNum(); i++) {
-        for(int j = 0; j < i; j++)
+        for(int j = i+1; j < getVerNum(); j++)
             if(_graph[i][j] != -1) {
                 _edgeId[i][j] = ++_edgeNum;
                 _edgeId[j][i] = _edgeId[i][j];
@@ -198,6 +199,8 @@ vector<int> Graph::getShortestPath(int s, int e) const {
     vector<int> path;
     //cout << "in: " << s << "  " << e << "  size: ";
     while(s != e) {
+        if(s < 0 || s > getVerNum())
+            throw "can't find path";
         path.push_back(s);
         s = _path[s][e];
     }

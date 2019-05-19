@@ -105,13 +105,18 @@ void GeneticAlgorithm::selectChromosome() {
     cout << "calculate cost " << endTime-startTime << " times" << endl;
 
     // 新种群的四分之一是最优染色体
-    for(int i = 0; i < selectBestNum; i++)
+    for(int i = 0; i < selectBestNum; i++) {
+        _bestChromosome.setCalculate(true);
+        _bestChromosome.setChange(false);
         newChromosomeSet.push_back(_bestChromosome);
+    }
     // 剩下四分之三采取轮盘
     for(int i = 0; i < population-selectBestNum; i++) {
         double random = ((double)rand())/RAND_MAX;
         for(unsigned j = 0; j < _chromosomeSet.size(); j++) {
             if(random <= _chromosomeSet[i].getFitness()/_totalFitness) {
+                _chromosomeSet[i].setCalculate(true);
+                _chromosomeSet[i].setChange(false);
                 newChromosomeSet.push_back(_chromosomeSet[j]);
                 break;
             }
