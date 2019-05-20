@@ -15,7 +15,7 @@ void GeneticAlgorithm::run() {
     clock_t startTime, endTime;
     startTime = clock();
     initGA();
-    cout << "finish init" << endl;
+    //cout << "finish init" << endl;
     int stableTimes = 0;
     float lastFitness = 0.0;
     for(int count = 0; count < 200; count++) {
@@ -23,7 +23,6 @@ void GeneticAlgorithm::run() {
         srand(time(0));
         // 选择 交叉 变异 一条龙服务
         //cout << "1---" << count << endl;
-        selectChromosome();
         //cout << "2---" << count << endl;
         initializeCrossoverProbability();
         crossoverChromosome();
@@ -31,6 +30,7 @@ void GeneticAlgorithm::run() {
         initializeMutateProbability();
         mutateChromosome();
         //cout << "4---" << count << endl << endl;
+        selectChromosome();
         //_bestChromosome.printTable();
         //cout << setprecision(20) << _bestChromosome.getFitness() << endl;
         //cout << "-----------------------------" << endl;

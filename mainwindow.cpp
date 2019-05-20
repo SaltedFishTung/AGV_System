@@ -68,7 +68,7 @@ void MainWindow::paintEvent(QPaintEvent*) {
     // 画地图
     painter.setPen(QPen(Qt::white, 2));
     int offsetOfX = 350;
-    int offsetOfY = 50;
+    int offsetOfY = 0;
     for(int i = 0; i < mapModel.getEdgeNum(); i++) {
         int point1 = mapModel.getEdgeStart(i+1);
         int point2 = mapModel.getEdgeEnd(i+1);

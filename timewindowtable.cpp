@@ -51,11 +51,11 @@ float TimeWindowTable::addPathInfo(int carIndex, const vector<int>& pathInfo, Gr
                     int beforeS = A.getBeforeS(s, edgeToS);
 
                     //删除这辆车在edgeToS路径上对应的时间窗
+                    TimeWindow findTw = _carAxis[carIndex].back();
                     _carAxis[carIndex].pop_back();
                     TimeWindowsByEdge::iterator edgeAxisIter = _edgeAxis[edgeToS].begin();
                     while(++edgeAxisIter != _edgeAxis[edgeToS].end()) {
-                        if(tw.getCarID() == edgeAxisIter->getCarID() &&
-                                tw.getEnterTime() == edgeAxisIter->getExitTime()) {
+                        if(findTw == *edgeAxisIter) {
                             _edgeAxis[edgeToS].erase(edgeAxisIter);
                             break;
                         }
@@ -87,18 +87,26 @@ TimeWindowsByEdge::iterator TimeWindowTable::isCollision(int edgeIndex, const Ti
 }
 
 void TimeWindowTable::clear() {
-    for(int i = 0; i < _carAxis.size(); i++) {
-        auto iter = _carAxis[i].begin();
-        ++iter;
-        while(iter != _carAxis[i].end())
-            iter = _carAxis[i].erase(iter);
-    }
-    for(int i = 0; i < _edgeAxis.size(); i++) {
-        auto iter = _edgeAxis[i].begin();
-        ++iter;
-        while(iter != _edgeAxis[i].end())
-            iter = _edgeAxis[i].erase(iter);
-    }
+    int carNum = _carAxis.size();
+    int edgeNum = _edgeAxis.size();
+    vector<TimeWindowsByCar>().swap(_carAxis);
+    vector<TimeWindowsByEdge>().swap(_edgeAxis);
+    for(int i = 0; i < carNum; i++)
+        _carAxis.push_back(TimeWindowsByCar(TimeWindow(0.0, 0.0, i+1, 0)));
+    for(int i = 0; i < edgeNum+1; i++)
+        _edgeAxis.push_back(TimeWindowsByEdge(TimeWindow(0.0, 0.0, 0, i+1)));
+//    for(int i = 0; i < _carAxis.size(); i++) {
+//        auto iter = _carAxis[i].begin();
+//        ++iter;
+//        while(iter != _carAxis[i].end())
+//            iter = _carAxis[i].erase(iter);
+//    }
+//    for(int i = 0; i < _edgeAxis.size(); i++) {
+//        auto iter = _edgeAxis[i].begin();
+//        ++iter;
+//        while(iter != _edgeAxis[i].end())
+//            iter = _edgeAxis[i].erase(iter);
+//    }
 }
 
 void TimeWindowTable::clearFromIndex() {
