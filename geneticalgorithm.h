@@ -10,6 +10,7 @@
 using namespace std;
 #define MAX_GENERATION 256;
 #define MIN_GENERATION 64;
+#define MIN_FITNESS 0.00005
 #define MIN_ERROR 0.000005
 
 class GeneticAlgorithm {
@@ -35,7 +36,7 @@ private:
 
     // 最优染色体以及每一代的所有染色体
     Chromosome _bestChromosome;
-    vector<Chromosome> _chromosomeSet;
+    vector<Chromosome>* _pChromosomeSet;
 
     // 交叉概率组、变异概率组
     vector<double> _crossoverProbabilityArray;

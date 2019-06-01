@@ -4,6 +4,7 @@
 #include <vector>
 #include "timewindowtable.h"
 #include "taskprocessor.h"
+#include "astar.h"
 #include "graph.h"
 #include "task.h"
 #include "car.h"
@@ -17,7 +18,6 @@ public:
     Chromosome(const TaskProcessor& tPro, const Graph& G);
     Chromosome(const Chromosome& Ch);
     Chromosome& operator=(const Chromosome& Ch);
-    ~Chromosome();
 
     void calculate(const Graph& G, const TaskSet& tSet, const CarSet& cSet);
 

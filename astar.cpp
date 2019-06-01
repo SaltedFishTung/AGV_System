@@ -1,123 +1,149 @@
-#include <math.h>
-#include "Astar.h"
-using namespace std;
+#include "astar.h"
 
-void Astar::InitAstar(vector<vector<int>> &_maze) {
-    maze = _maze;
+void Astar::addPath(TimeWindowTable *twTablePtr, const Graph &G, int startId, int endId) {
+    vector<int> shortestPath = G.getPathInfo(startId, endId);
+    int newStartId;
+    list<int> path;
+    bool flag = true;
+    for(unsigned i = 0; i < shortestPath.size()-1; i++) {
+        int carId = twTablePtr->currCarId;
+        int edgeId = G.getEdgeId(shortestPath[i], shortestPath[i+1]);
+        float enterTime = twTablePtr->getCarTimeWindow(carId).back().getExitTime();
+        float exitTime = enterTime + G.getShortestDist(shortestPath[i], shortestPath[i+1])/1.0;
+        TimeWindow tw(enterTime, exitTime, carId, edgeId);
+        tw.setDirection(shortestPath[i] < shortestPath[i+1]);
+        tw.setCarID(carId);
+        tw.setEdgeID(edgeId);
+        TimeWindowsByEdge::iterator insertIter = twTablePtr->isCollision(edgeId, tw);
+        if(insertIter != twTablePtr->getEdgeTimeWindow(edgeId).begin())
+            twTablePtr->addPath(tw, insertIter);
+        else {
+            newStartId = shortestPath[i];
+            flag = false;
+            break;
+        }
+    }
+    if(flag)
+        return ;
+    Node startNode(newStartId), endNode(endId);
+    Node* result = findPath(twTablePtr, G, startNode, endNode);
+    while (result) {
+        path.push_front(result->id);
+        result = result->parent;
+    }
+    openList.clear();
+    closeList.clear();
+//    cout << "out: ";
+//    for(int node : path)
+//        cout << node << "  ";
+//    cout << endl;
+    twTablePtr->addPathInfo(twTablePtr->currCarId, vector<int>(path.begin(), path.end()),
+                            G, 1);
 }
 
-int Astar::calcG(Point *temp_start, Point *point) {
-    int extraG = (abs(point->x - temp_start->x) + abs(point->y - temp_start->y)) == 1 ? kCost1 : kCost2;
-    int parentG = point->parent == NULL ? 0 : point->parent->G; //如果是初始节点，则其父节点是空
+int Astar::calcG(const Graph &G, Node *temp_start, Node *node) {
+    int extraG = G.getShortestDist(temp_start->id, node->id);
+    int parentG = node->parent == nullptr ? 0 : node->parent->G;
     return parentG + extraG;
 }
 
-int Astar::calcH(Point *point, Point *end) {
-    //用简单的欧几里得距离计算H，这个H的计算是关键，还有很多算法，没深入研究^_^
-    return sqrt((double)(end->x - point->x)*(double)(end->x - point->x) + (double)(end->y - point->y)*(double)(end->y - point->y))*kCost1;
+int Astar::calcH(const Graph &G, Node *node, Node *end) {
+    return G.getShortestDist(node->id, end->id);
 }
 
-int Astar::calcF(Point *point) {
-    return point->G + point->H;
+int Astar::calcF(Node *node) {
+    return node->G + node->H;
 }
 
-Point *Astar::getLeastFpoint() {
-    if (!openList.empty()) {
-        auto resPoint = openList.front();
-        for (auto &point : openList)
-        if (point->F<resPoint->F)
-            resPoint = point;
-        return resPoint;
+Node* Astar::getLeastFNode() {
+    if(!openList.empty()) {
+        auto resNode = openList.front();
+        for(auto &node : openList) {
+            if(node->F < resNode->F)
+                resNode = node;
+        }
+        return resNode;
     }
-    return NULL;
+    return nullptr;
 }
 
-Point *Astar::findPath(Point &startPoint, Point &endPoint, bool isIgnoreCorner) {
-    openList.push_back(new Point(startPoint.x, startPoint.y)); //置入起点,拷贝开辟一个节点，内外隔离
+
+Node *Astar::findPath(TimeWindowTable* twTablePtr, const Graph &G, Node &startNode, Node &endNode) {
+    openList.push_back(new Node(startNode.id)); //置入起点,拷贝开辟一个节点，内外隔离
+    //cout << endl;
     while (!openList.empty()) {
-        auto curPoint = getLeastFpoint(); //找到F值最小的点
-        openList.remove(curPoint); //从开启列表中删除
-        closeList.push_back(curPoint); //放到关闭列表
-        //1,找到当前周围八个格中可以通过的格子
-        auto surroundPoints = getSurroundPoints(curPoint, isIgnoreCorner);
-        for (auto &target : surroundPoints) {
-            //2,对某一个格子，如果它不在开启列表中，加入到开启列表，设置当前格为其父节点，计算F G H
-            if (!isInList(openList, target)) {
-                target->parent = curPoint;
-
-                target->G = calcG(curPoint, target);
-                target->H = calcH(target, &endPoint);
+        auto curNode = getLeastFNode(); //找到F值最小的点
+        openList.remove(curNode); //从开启列表中删除
+        bool isInClose = false;
+        for(auto &closeNode : closeList) {
+            if(closeNode->id == curNode->id)
+                isInClose = true;
+        }
+        if(!isInClose)
+            closeList.push_back(curNode); //放到关闭列表
+        //cout << curNode->id;
+        // 找到当前周围可以通过的路段
+        auto surroundNodes = getSurroundNodes(twTablePtr, G, curNode);
+        //cout << "-";
+        for (auto &target : surroundNodes) {
+            // 对某一节点，如果它不在开启列表中，加入到开启列表，设置当前格为其父节点，计算F G H
+            if (!isInOpenList(openList, target)) {
+                target->parent = curNode;
+                target->G = calcG(G, curNode, target);
+                target->H = calcH(G, target, &endNode);
                 target->F = calcF(target);
-
                 openList.push_back(target);
             }
-            //3，对某一个格子，它在开启列表中，计算G值, 如果比原来的大, 就什么都不做, 否则设置它的父节点为当前点,并更新G和F
+            // 对某一个节点，它在开启列表中，计算G值, 如果比原来的大, 就什么都不做, 否则设置它的父节点为当前点,并更新G和F
             else {
-                int tempG = calcG(curPoint, target);
-                if (tempG<target->G) {
-                    target->parent = curPoint;
-
+                int tempG = calcG(G, curNode, target);
+                if (tempG < target->G) {
+                    target->parent = curNode;
                     target->G = tempG;
                     target->F = calcF(target);
                 }
             }
-            Point *resPoint = isInList(openList, &endPoint);
-            if (resPoint)
-                return resPoint; //返回列表里的节点指针，不要用原来传入的endpoint指针，因为发生了深拷贝
+            Node *resNode = isInOpenList(openList, &endNode);
+            if (resNode != nullptr) {
+                return resNode; //返回列表里的节点指针，不要用原来传入的endNode指针，因为发生了深拷贝
+            }
         }
     }
-    return NULL;
+    return nullptr;
 }
 
-list<Point *> Astar::GetPath(Point &startPoint, Point &endPoint, bool isIgnoreCorner) {
-    Point *result = findPath(startPoint, endPoint, isIgnoreCorner);
-    list<Point *> path;
-    //返回路径，如果没找到路径，返回空链表
-    while (result) {
-        path.push_front(result);
-        result = result->parent;
+Node *Astar::isInOpenList(const list<Node *> &list, const Node *node) const {
+    //判断某个节点是否在列表中，这里不能比较指针，因为每次加入列表是新开辟的节点，只能比较节点编号
+    for (auto p : list) {
+        if(p->id == node->id)
+            return p;
     }
-    // 清空临时开闭列表，防止重复执行GetPath导致结果异常
-    openList.clear();
-    closeList.clear();
-
-    return path;
+    return nullptr;
 }
 
-Point *Astar::isInList(const list<Point *> &list, const Point *point) const {
-    //判断某个节点是否在列表中，这里不能比较指针，因为每次加入列表是新开辟的节点，只能比较坐标
-    for (auto p : list)
-    if (p->x == point->x&&p->y == point->y)
-        return p;
-    return NULL;
+Node *Astar::isInCloseList(const list<Node *> &list, const Node *node) const {
+    //判断某个节点是否在列表中，这里不能比较指针，因为每次加入列表是新开辟的节点，只能比较节点编号
+    for (auto p : list) {
+        if(p->id == node->id)
+            return (++(p->passCount) > 10) ? p : nullptr;
+    }
+    return nullptr;
 }
 
-bool Astar::isCanreach(const Point *point, const Point *target, bool isIgnoreCorner) const {
-    //如果点与当前节点重合、超出地图、是障碍物、或者在关闭列表中，返回false
-    if (target->x<0 || target->x>maze.size() - 1
-        || target->y<0 || target->y>maze[0].size() - 1
-        || maze[target->x][target->y] == 1
-        || target->x == point->x&&target->y == point->y
-        || isInList(closeList, target))
-        return false;
-    else {
-        if (abs(point->x - target->x) + abs(point->y - target->y) == 1) //非斜角可以
-            return true;
-        else {
-            //斜对角要判断是否绊住
-            if (maze[point->x][target->y] == 0 && maze[target->x][point->y] == 0)
-                return true;
-            else
-                return isIgnoreCorner;
+vector<Node *> Astar::getSurroundNodes(
+        TimeWindowTable* twTablePtr, const Graph& G, const Node *node) const {
+    vector<Node *> surroundNodes;
+    for(int id = 0; id < G.getVerNum(); id++) {
+        //cout << node->id << "  " << id << endl;
+        if(id != node->id && G.isAdjacent(node->id, id)) {
+            int carId = twTablePtr->currCarId;
+            int edgeId = G.getEdgeId(node->id, id);
+            float enterTime = twTablePtr->getCarTimeWindow(carId).back().getExitTime();
+            float exitTime = enterTime + G.getShortestDist(node->id, id)/1.0;
+            TimeWindow tw(enterTime, exitTime, carId, edgeId);
+            if(twTablePtr->isPass(edgeId, tw) && isInCloseList(closeList, new Node(id)) == nullptr)
+                surroundNodes.push_back(new Node(id));
         }
     }
-}
-
-vector<Point *> Astar::getSurroundPoints(const Point *point, bool isIgnoreCorner) const {
-    vector<Point *> surroundPoints;
-    for (int x = point->x - 1; x <= point->x + 1; x++)
-    for (int y = point->y - 1; y <= point->y + 1; y++)
-    if (isCanreach(point, new Point(x, y), isIgnoreCorner))
-        surroundPoints.push_back(new Point(x, y));
-    return surroundPoints;
+    return surroundNodes;
 }

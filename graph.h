@@ -44,6 +44,7 @@ public:
     int getEdgeNum() const;
     int getBeforeS(int s, int edgeToS) const;
     bool isAlone(int s) const;
+    bool isAdjacent(int s, int e) const { return _graph[s][e] != -1; }
     void Dijstra(int s);
     void resume();
     void printGraph() const;

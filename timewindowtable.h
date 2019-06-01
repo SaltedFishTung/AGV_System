@@ -16,6 +16,9 @@ class TimeWindowTable {
 public:
     friend ostream& operator<<(ostream& out, TimeWindowTable& table);
 
+    int currCarId;
+    int currEdgeId;
+
     TimeWindowTable() { }
     TimeWindowTable(int carNum, int edgeNum);
     TimeWindowTable& operator=(const TimeWindowTable& table) {
@@ -25,25 +28,25 @@ public:
     }
     const vector<int>& getTasksIndex() const { return tasksIndex; }
     void setTable(int carNum, int edgeNum);
-    float addPathInfo(int carIndex, const vector<int>& pathInfo, Graph& G, int count);
+    float addPathInfo(int carIndex, const vector<int>& pathInfo, const Graph& G, int count);
+    void addPath(const TimeWindow& tw, TimeWindowsByEdge::iterator insertIter);
     void clear();
     void clearFromIndex();
 
     void setTasksIndex(const vector<int>& ivec);
-    void setPointIndex(int carIndex, int pointIndex) {
-
-    }
 
     const vector<TimeWindowsByCar>& getCarsTimeWindow() const { return _carAxis; }
     const TimeWindowsByCar& getCarTimeWindow(int carIndex) const { return _carAxis[carIndex]; }
+    const TimeWindowsByEdge& getEdgeTimeWindow(int edgeIndex) const { return _edgeAxis[edgeIndex]; }
+    TimeWindowsByEdge::iterator isCollision(int edgeIndex, const TimeWindow& tw);
+    bool isPass(int edgeIndex, const TimeWindow& tw) {
+        return isCollision(edgeIndex, tw) != _edgeAxis[edgeIndex].begin();
+    }
 private:
     vector<TimeWindowsByCar> _carAxis;
     vector<TimeWindowsByEdge> _edgeAxis;
-
-
-    TimeWindowsByEdge::iterator isCollision(int edgeIndex, const TimeWindow& tw);
     vector<int> tasksIndex;
-    int pointsIndex[MAX_CAR][MAX_TASK];
+    //int pointsIndex[MAX_CAR][MAX_TASK];
 };
 
 #endif // TIMEWINDOWTABLE_H

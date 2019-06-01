@@ -55,9 +55,9 @@ void MainWindow::setTimeWindowGroup(const vector<TimeWindowsByCar> &twGroup) {
         this->twGroup.push_back(twVec);
     }
     cout << "points set-----" << endl;
-    for(int i = 0; i < pointsSet.size(); i++) {
+    for(unsigned i = 0; i < pointsSet.size(); i++) {
         cout << "car" << i+1 << ": ";
-        for(int j = 0; j < pointsSet[i].size(); j++)
+        for(unsigned j = 0; j < pointsSet[i].size(); j++)
             cout << pointsSet[i][j] << " ";
         cout << endl;
     }
@@ -66,21 +66,30 @@ void MainWindow::setTimeWindowGroup(const vector<TimeWindowsByCar> &twGroup) {
 void MainWindow::paintEvent(QPaintEvent*) {
     QPainter painter(this);
     // 画地图
-    painter.setPen(QPen(Qt::white, 2));
     int offsetOfX = 350;
     int offsetOfY = 0;
     for(int i = 0; i < mapModel.getEdgeNum(); i++) {
         int point1 = mapModel.getEdgeStart(i+1);
         int point2 = mapModel.getEdgeEnd(i+1);
+        painter.setPen(QPen(Qt::white, 2));
         painter.drawLine(
             mapModel.getPointX(point1)+offsetOfX, mapModel.getPointY(point1)+offsetOfY,
             mapModel.getPointX(point2)+offsetOfX, mapModel.getPointY(point2)+offsetOfY);
+        string edgeName = std::to_string(i+1);
+        painter.setPen(QPen(Qt::white, 2));
+        QFont font;
+        font.setFamily("Microsoft YaHei");
+        font.setPointSize(16);
+        painter.setFont(font);
+        painter.drawText((mapModel.getPointX(point1)+mapModel.getPointX(point2))/2+offsetOfX,
+                         (mapModel.getPointY(point1)+mapModel.getPointY(point2))/2+offsetOfY,
+                         QString(edgeName.c_str()));
     }
 
     // 画车
     for(unsigned i = 0; i < cGroupModel.size(); i++) {
         int driftLen = sqrt(driftsOfX[i]*driftsOfX[i] + driftsOfY[i]*driftsOfY[i]);
-        if(pointsIndex[i]+1 >= pointsSet[i].size())
+        if((unsigned)pointsIndex[i]+1 >= pointsSet[i].size())
             continue;
         int point1 = pointsSet[i][pointsIndex[i]];
         int point2 = pointsSet[i][pointsIndex[i]+1];

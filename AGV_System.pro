@@ -24,7 +24,6 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 
 SOURCES += main.cpp\
-    node.cpp \
     graph.cpp \
     ksp.cpp \
     mainwindow.cpp \
@@ -42,10 +41,10 @@ SOURCES += main.cpp\
     mapmodel.cpp \
     edgegroupmodel.cpp \
     cargroupmodel.cpp \
-    pathlibrary.cpp
+    pathlibrary.cpp \
+    astar.cpp
 
 HEADERS  += \
-    node.h \
     graph.h \
     ksp.h \
     mainwindow.h \
@@ -63,7 +62,8 @@ HEADERS  += \
     mapmodel.h \
     edgegroupmodel.h \
     cargroupmodel.h \
-    pathlibrary.h
+    pathlibrary.h \
+    astar.h
 
 FORMS    += \
     mainwindow.ui \

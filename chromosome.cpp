@@ -113,9 +113,6 @@ Chromosome::Chromosome(const Chromosome &Ch) {
     isChange = false;
 }
 
-Chromosome::~Chromosome() {
-}
-
 Chromosome& Chromosome::operator =(const Chromosome& Ch) {
     genes = Ch.genes;
     _fitness = Ch._fitness;
@@ -129,50 +126,44 @@ Chromosome& Chromosome::operator =(const Chromosome& Ch) {
 void Chromosome::calculate(const Graph& G, const TaskSet& tSet, const CarSet& cSet) {
     if(isCalculate)
         return;
-//    if(isChange) {
-//        vector<int> tasksIndex = _table.getTasksIndex();
-//        for(int carIndex = 0; carIndex < genes.size(); carIndex++) {
-//            if()
-//        }
-//        _table.clearFromIndex();
-//    }
+    Astar star;
     _carNum = 0;
     float minFit = numeric_limits<float>::max();
     float maxFit = numeric_limits<float>::min();
     float fitness[genes.size()];
     Graph graph(G);
     _table.clear();
-    for(int i = 0; i < genes.size(); i++)
+    for(unsigned i = 0; i < genes.size(); i++)
         fitness[i] = 0.0;
-    for(int carIndex = 0; carIndex < genes.size(); carIndex++) {
+    for(unsigned carIndex = 0; carIndex < genes.size(); carIndex++) {
+        _table.currCarId = carIndex;
         int start = cSet[carIndex].startId;
         int end = tSet[genes[carIndex][0]].s;
-        vector<int> pathInfo(G.getPathInfo(start, end));
-        _table.addPathInfo(carIndex, pathInfo, graph, 1);
+        star.addPath(&_table, G, start, end);
     }
-    int taskIndex = 0;
+    unsigned taskIndex = 0;
     bool flag = true;
     while (flag) {
         flag = false;
-        for(int carIndex = 0; carIndex < genes.size(); carIndex++) {
+        for(unsigned carIndex = 0; carIndex < genes.size(); carIndex++) {
+            _table.currCarId = carIndex;
             if(taskIndex < genes[carIndex].size()) {
-                vector<int> pathInfo1(
-                    G.getPathInfo(tSet[genes[carIndex][taskIndex]].s,
-                    tSet[genes[carIndex][taskIndex]].e));
-                fitness[carIndex] = _table.addPathInfo(carIndex, pathInfo1, graph, 1);
-                _table.getCarTimeWindow(carIndex).size();
+                int start = tSet[genes[carIndex][taskIndex]].s;
+                int end = tSet[genes[carIndex][taskIndex]].e;
+                star.addPath(&_table, G, start, end);
             }
             if(taskIndex < genes[carIndex].size()-1) {
-                vector<int> pathInfo2(
-                    G.getPathInfo(tSet[genes[carIndex][taskIndex]].e,
-                    tSet[genes[carIndex][taskIndex+1]].s));
-                _table.addPathInfo(carIndex, pathInfo2, graph, 1);
+                int start = tSet[genes[carIndex][taskIndex]].e;
+                int end = tSet[genes[carIndex][taskIndex+1]].s;
+                star.addPath(&_table, G, start, end);
                 flag = true;
             }
         }
         taskIndex++;
     }
-    for(int i = 0; i < genes.size(); i++) {
+    for(unsigned i = 0; i < genes.size(); i++)
+        fitness[i] = _table.getCarTimeWindow(i).back().getExitTime();
+    for(unsigned i = 0; i < genes.size(); i++) {
         if(maxFit < fitness[i]) {
             _longest = i;
             _fitness = (double)1.0/fitness[i];
